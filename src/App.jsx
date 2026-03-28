@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { matchPalette } from './palettes'
 
+async function generateFromAPI(vibe) {
+  const res = await fetch('/api/generate-palette', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vibe }),
+  })
+  if (!res.ok) throw new Error('API error')
+  return res.json()
+}
+
 const EXAMPLE_VIBES = [
   'cozy rainy afternoon with tea',
   'late night hacker energy',
@@ -83,6 +93,7 @@ function GoogleFontLoader({ heading, body }) {
 export default function App() {
   const [vibe, setVibe] = useState('')
   const [result, setResult] = useState(null)
+  const [loading, setLoading] = useState(false)
   const [placeholder, setPlaceholder] = useState(EXAMPLE_VIBES[0])
   const inputRef = useRef()
 
@@ -95,10 +106,19 @@ export default function App() {
     return () => clearInterval(id)
   }, [])
 
-  function generate(e) {
+  async function generate(e) {
     e.preventDefault()
     const query = vibe.trim() || placeholder
-    setResult(matchPalette(query))
+    setLoading(true)
+    setResult(null)
+    try {
+      const data = await generateFromAPI(query)
+      setResult(data)
+    } catch {
+      setResult(matchPalette(query))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -146,8 +166,8 @@ export default function App() {
           className="neon-border flex-1 rounded-lg px-4 py-3 text-sm bg-black/50 backdrop-blur-sm placeholder:opacity-30 focus:outline-none transition"
           style={{ fontFamily: 'Exo 2, sans-serif' }}
         />
-        <button type="submit" className="neon-btn px-5 py-3 rounded-lg">
-          GENERATE
+        <button type="submit" disabled={loading} className="neon-btn px-5 py-3 rounded-lg">
+          {loading ? '...' : 'GENERATE'}
         </button>
       </form>
 
@@ -158,16 +178,6 @@ export default function App() {
             {result.palette.map(color => (
               <SwatchCard key={color.hex} color={color} />
             ))}
-          </div>
-
-          {/* Font tags */}
-          <div className="flex gap-3 justify-center flex-wrap mb-8">
-            <div className="font-tag px-3 py-1.5 rounded-md">
-              HEADING / {result.fonts.heading}
-            </div>
-            <div className="font-tag px-3 py-1.5 rounded-md">
-              BODY / {result.fonts.body}
-            </div>
           </div>
 
           <div className="text-center">
