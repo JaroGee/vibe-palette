@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { matchPalette } from './palettes'
 
 const EXAMPLE_VIBES = [
   'cozy rainy afternoon with tea',
@@ -38,16 +39,15 @@ function SwatchCard({ color, index }) {
       onClick={copy}
       title="Click to copy hex"
     >
-      <div
-        className="p-3 flex flex-col gap-0.5"
-        style={{ color: textColor }}
-      >
+      <div className="p-3 flex flex-col gap-0.5" style={{ color: textColor }}>
         <span className="text-xs font-semibold uppercase tracking-widest opacity-70">{color.role}</span>
         <span className="text-sm font-bold">{color.name}</span>
         <span className="text-xs font-mono opacity-80">{color.hex}</span>
         {copied && (
-          <span className="absolute inset-0 flex items-center justify-center text-sm font-bold"
-            style={{ backgroundColor: color.hex, color: textColor }}>
+          <span
+            className="absolute inset-0 flex items-center justify-center text-sm font-bold"
+            style={{ backgroundColor: color.hex, color: textColor }}
+          >
             Copied!
           </span>
         )}
@@ -75,8 +75,6 @@ function GoogleFontLoader({ heading, body }) {
 export default function App() {
   const [vibe, setVibe] = useState('')
   const [result, setResult] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
   const [placeholder, setPlaceholder] = useState(EXAMPLE_VIBES[0])
   const inputRef = useRef()
 
@@ -89,27 +87,10 @@ export default function App() {
     return () => clearInterval(id)
   }, [])
 
-  async function generate(e) {
+  function generate(e) {
     e.preventDefault()
     const query = vibe.trim() || placeholder
-    if (!query) return
-    setLoading(true)
-    setError(null)
-    setResult(null)
-    try {
-      const res = await fetch('/api/generate-palette', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vibe: query }),
-      })
-      if (!res.ok) throw new Error('Server error')
-      const data = await res.json()
-      setResult(data)
-    } catch (err) {
-      setError('Something went wrong. Make sure ANTHROPIC_API_KEY is set in .env')
-    } finally {
-      setLoading(false)
-    }
+    setResult(matchPalette(query))
   }
 
   const bgColor = result?.palette?.find(p => p.role === 'background')?.hex
@@ -124,7 +105,6 @@ export default function App() {
         <GoogleFontLoader heading={result.fonts.heading} body={result.fonts.body} />
       )}
 
-      {/* Header */}
       <div className="text-center mb-12">
         <h1
           className="text-5xl font-black tracking-tight mb-2 transition-all duration-500"
@@ -137,7 +117,6 @@ export default function App() {
         </p>
       </div>
 
-      {/* Input */}
       <form onSubmit={generate} className="w-full max-w-xl flex gap-2 mb-12">
         <input
           ref={inputRef}
@@ -149,34 +128,12 @@ export default function App() {
         />
         <button
           type="submit"
-          disabled={loading}
-          className="px-5 py-3 rounded-xl font-semibold text-sm bg-white/20 border border-white/30 hover:bg-white/30 disabled:opacity-40 transition backdrop-blur-sm"
+          className="px-5 py-3 rounded-xl font-semibold text-sm bg-white/20 border border-white/30 hover:bg-white/30 transition backdrop-blur-sm"
         >
-          {loading ? '...' : 'Generate'}
+          Generate
         </button>
       </form>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex gap-2 mb-10">
-          {[0, 1, 2, 3, 4].map(i => (
-            <div
-              key={i}
-              className="w-12 h-24 rounded-xl bg-white/10 animate-pulse"
-              style={{ animationDelay: `${i * 100}ms` }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="mb-8 px-4 py-3 rounded-xl bg-red-500/20 border border-red-400/30 text-red-300 text-sm max-w-md text-center">
-          {error}
-        </div>
-      )}
-
-      {/* Palette */}
       {result && (
         <div className="w-full max-w-2xl">
           <div className="grid grid-cols-5 gap-3 mb-8">
@@ -185,7 +142,6 @@ export default function App() {
             ))}
           </div>
 
-          {/* Font info */}
           <div className="flex gap-4 justify-center flex-wrap">
             <div className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-sm backdrop-blur-sm">
               <span className="opacity-50 text-xs uppercase tracking-wider mr-2">Heading</span>
@@ -201,7 +157,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Try again */}
           <div className="mt-8 text-center">
             <button
               onClick={() => { setResult(null); setVibe(''); inputRef.current?.focus() }}
