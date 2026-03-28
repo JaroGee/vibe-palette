@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
 @import "tailwindcss";
 
 * {
@@ -8,7 +9,145 @@
 
 body {
   min-height: 100vh;
-  background: #0a0a0f;
+  background-color: #0a0015;
   color: #f0eef5;
-  font-family: system-ui, sans-serif;
+  font-family: 'Exo 2', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Perspective grid floor */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(to bottom, #0a0015 0%, #0a0015 40%, transparent 100%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 0, 200, 0.15) 0px,
+      transparent 1px,
+      transparent 60px,
+      rgba(255, 0, 200, 0.15) 61px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 200, 255, 0.15) 0px,
+      transparent 1px,
+      transparent 60px,
+      rgba(0, 200, 255, 0.15) 61px
+    );
+  background-size: 100% 100%, 61px 61px, 61px 61px;
+  transform: perspective(400px) rotateX(40deg) scaleY(2.5) translateY(20%);
+  transform-origin: bottom center;
+  pointer-events: none;
+}
+
+/* Scanlines */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+.neon-title {
+  font-family: 'Orbitron', sans-serif;
+  color: #fff;
+  text-shadow:
+    0 0 7px #fff,
+    0 0 20px #fff,
+    0 0 40px #ff00cc,
+    0 0 80px #ff00cc,
+    0 0 120px #ff00cc;
+}
+
+.neon-cyan {
+  text-shadow:
+    0 0 7px #fff,
+    0 0 20px #00f5ff,
+    0 0 40px #00f5ff,
+    0 0 80px #00f5ff;
+}
+
+.neon-border {
+  border: 1px solid rgba(255, 0, 200, 0.4);
+  box-shadow:
+    0 0 8px rgba(255, 0, 200, 0.3),
+    inset 0 0 8px rgba(255, 0, 200, 0.05);
+}
+
+.neon-border:focus {
+  border-color: rgba(0, 245, 255, 0.7);
+  box-shadow:
+    0 0 12px rgba(0, 245, 255, 0.5),
+    inset 0 0 8px rgba(0, 245, 255, 0.05);
+}
+
+.neon-btn {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  background: transparent;
+  border: 1px solid #ff00cc;
+  color: #ff00cc;
+  text-shadow: 0 0 8px #ff00cc;
+  box-shadow: 0 0 12px rgba(255, 0, 204, 0.4), inset 0 0 12px rgba(255, 0, 204, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.neon-btn:hover {
+  background: rgba(255, 0, 204, 0.1);
+  box-shadow: 0 0 24px rgba(255, 0, 204, 0.7), inset 0 0 16px rgba(255, 0, 204, 0.1);
+}
+
+.neon-btn:disabled {
+  opacity: 0.4;
+}
+
+.swatch-card {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.swatch-card:hover {
+  transform: scale(1.05) translateY(-4px);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+}
+
+.font-tag {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  box-shadow: 0 0 8px rgba(0, 245, 255, 0.15);
+  color: #00f5ff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+.star {
+  position: fixed;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle 3s infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.2; transform: scale(1); }
+  to   { opacity: 1;   transform: scale(1.4); }
 }

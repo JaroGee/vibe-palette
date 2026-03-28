@@ -9,6 +9,14 @@ const EXAMPLE_VIBES = [
   'neon-lit Tokyo alleyway',
 ]
 
+const STARS = Array.from({ length: 60 }, (_, i) => ({
+  id: i,
+  top: Math.random() * 60,
+  left: Math.random() * 100,
+  size: Math.random() * 2 + 1,
+  delay: Math.random() * 3,
+}))
+
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1, 3), 16)
   const g = parseInt(hex.slice(3, 5), 16)
@@ -20,7 +28,7 @@ function luminance({ r, g, b }) {
   return 0.299 * r + 0.587 * g + 0.114 * b
 }
 
-function SwatchCard({ color, index }) {
+function SwatchCard({ color }) {
   const [copied, setCopied] = useState(false)
   const rgb = hexToRgb(color.hex)
   const light = luminance(rgb) > 128
@@ -34,21 +42,21 @@ function SwatchCard({ color, index }) {
 
   return (
     <div
-      className="relative flex flex-col justify-end rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-[1.03] active:scale-[0.98]"
-      style={{ backgroundColor: color.hex, minHeight: 160, animationDelay: `${index * 80}ms` }}
+      className="swatch-card relative flex flex-col justify-end rounded-xl overflow-hidden cursor-pointer"
+      style={{ backgroundColor: color.hex, minHeight: 140 }}
       onClick={copy}
       title="Click to copy hex"
     >
       <div className="p-3 flex flex-col gap-0.5" style={{ color: textColor }}>
-        <span className="text-xs font-semibold uppercase tracking-widest opacity-70">{color.role}</span>
+        <span className="text-xs font-semibold uppercase tracking-widest opacity-60">{color.role}</span>
         <span className="text-sm font-bold">{color.name}</span>
-        <span className="text-xs font-mono opacity-80">{color.hex}</span>
+        <span className="text-xs font-mono opacity-70">{color.hex}</span>
         {copied && (
           <span
             className="absolute inset-0 flex items-center justify-center text-sm font-bold"
             style={{ backgroundColor: color.hex, color: textColor }}
           >
-            Copied!
+            COPIED
           </span>
         )}
       </div>
@@ -93,76 +101,82 @@ export default function App() {
     setResult(matchPalette(query))
   }
 
-  const bgColor = result?.palette?.find(p => p.role === 'background')?.hex
-  const primaryFont = result?.fonts?.heading
-
   return (
-    <div
-      className="min-h-screen flex flex-col items-center px-4 py-16 transition-colors duration-700"
-      style={bgColor ? { backgroundColor: bgColor } : {}}
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+      {/* Stars */}
+      {STARS.map(s => (
+        <div
+          key={s.id}
+          className="star"
+          style={{
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            width: s.size,
+            height: s.size,
+            animationDelay: `${s.delay}s`,
+          }}
+        />
+      ))}
+
       {result?.fonts && (
         <GoogleFontLoader heading={result.fonts.heading} body={result.fonts.body} />
       )}
 
-      <div className="text-center mb-12">
-        <h1
-          className="text-5xl font-black tracking-tight mb-2 transition-all duration-500"
-          style={primaryFont ? { fontFamily: `'${primaryFont}', sans-serif` } : {}}
-        >
-          {result ? `${result.emojis} ${result.aesthetic_name}` : '✨ Vibe Palette'}
+      {/* Title */}
+      <div className="text-center mb-10">
+        <div className="text-xs tracking-[0.4em] text-pink-400 mb-3 neon-cyan" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+          ★ ARCADE COLOR SYSTEM ★
+        </div>
+        <h1 className="neon-title text-5xl md:text-6xl font-black mb-3">
+          {result ? `${result.emojis} ${result.aesthetic_name}` : 'VIBE PALETTE'}
         </h1>
-        <p className="text-base opacity-60 mt-2">
-          {result?.descriptor ?? 'Describe a mood. Get a palette.'}
+        <p className="text-sm opacity-50 tracking-wide" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+          {result?.descriptor ?? 'INSERT VIBE TO CONTINUE'}
         </p>
       </div>
 
-      <form onSubmit={generate} className="w-full max-w-xl flex gap-2 mb-12">
+      {/* Input */}
+      <form onSubmit={generate} className="w-full max-w-lg flex gap-3 mb-10">
         <input
           ref={inputRef}
           type="text"
           value={vibe}
           onChange={e => setVibe(e.target.value)}
           placeholder={placeholder}
-          className="flex-1 rounded-xl px-4 py-3 text-base bg-white/10 border border-white/20 backdrop-blur-sm placeholder:opacity-40 focus:outline-none focus:border-white/50 transition"
+          className="neon-border flex-1 rounded-lg px-4 py-3 text-sm bg-black/50 backdrop-blur-sm placeholder:opacity-30 focus:outline-none transition"
+          style={{ fontFamily: 'Exo 2, sans-serif' }}
         />
-        <button
-          type="submit"
-          className="px-5 py-3 rounded-xl font-semibold text-sm bg-white/20 border border-white/30 hover:bg-white/30 transition backdrop-blur-sm"
-        >
-          Generate
+        <button type="submit" className="neon-btn px-5 py-3 rounded-lg">
+          GENERATE
         </button>
       </form>
 
+      {/* Palette */}
       {result && (
         <div className="w-full max-w-2xl">
-          <div className="grid grid-cols-5 gap-3 mb-8">
-            {result.palette.map((color, i) => (
-              <SwatchCard key={color.hex} color={color} index={i} />
+          <div className="grid grid-cols-5 gap-3 mb-6">
+            {result.palette.map(color => (
+              <SwatchCard key={color.hex} color={color} />
             ))}
           </div>
 
-          <div className="flex gap-4 justify-center flex-wrap">
-            <div className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-sm backdrop-blur-sm">
-              <span className="opacity-50 text-xs uppercase tracking-wider mr-2">Heading</span>
-              <span style={{ fontFamily: `'${result.fonts.heading}', sans-serif` }}>
-                {result.fonts.heading}
-              </span>
+          {/* Font tags */}
+          <div className="flex gap-3 justify-center flex-wrap mb-8">
+            <div className="font-tag px-3 py-1.5 rounded-md">
+              HEADING / {result.fonts.heading}
             </div>
-            <div className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-sm backdrop-blur-sm">
-              <span className="opacity-50 text-xs uppercase tracking-wider mr-2">Body</span>
-              <span style={{ fontFamily: `'${result.fonts.body}', sans-serif` }}>
-                {result.fonts.body}
-              </span>
+            <div className="font-tag px-3 py-1.5 rounded-md">
+              BODY / {result.fonts.body}
             </div>
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="text-center">
             <button
               onClick={() => { setResult(null); setVibe(''); inputRef.current?.focus() }}
-              className="text-sm opacity-50 hover:opacity-80 transition underline underline-offset-4"
+              className="text-xs tracking-widest opacity-40 hover:opacity-80 transition"
+              style={{ fontFamily: 'Orbitron, sans-serif' }}
             >
-              Try another vibe
+              ← TRY ANOTHER VIBE
             </button>
           </div>
         </div>
