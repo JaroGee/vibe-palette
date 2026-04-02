@@ -1,0 +1,102 @@
+VIBE PALETTE - DEVELOPER README
+================================
+
+OVERVIEW
+--------
+Vibe Palette is a React + Vite web app that takes a mood/vibe text input,
+calls the Claude API, and returns a matching color palette, fonts, and aesthetic
+label rendered as a live UI preview.
+
+
+TECH STACK
+----------
+Frontend : React 19, Vite 8, Tailwind CSS 4
+Backend  : Express 5 (local dev), Vercel Serverless Functions (production)
+AI       : Anthropic Claude (claude-sonnet-4-6) via @anthropic-ai/sdk
+
+
+PROJECT STRUCTURE
+-----------------
+vibe-palette/
+  api/
+    generate-palette.js     Vercel serverless function (production API handler)
+  src/                      React frontend source
+  public/                   Static assets
+  server.js                 Express dev server (mirrors api/generate-palette.js)
+  vite.config.js            Vite config; proxies /api -> localhost:3001 in dev
+  vercel.json               Vercel deployment config; SPA rewrites to index.html
+  package.json
+
+
+ENVIRONMENT VARIABLES
+---------------------
+ANTHROPIC_API_KEY   Required. Your Anthropic API key.
+
+For local dev, create a .env file in the project root:
+  ANTHROPIC_API_KEY=sk-ant-...
+
+The Express server loads it via dotenv. Vercel reads it from project env settings.
+
+
+LOCAL DEVELOPMENT
+-----------------
+1. Install dependencies:
+     npm install
+
+2. Create .env with your API key (see above).
+
+3. Start both servers (concurrently):
+     npm run dev
+
+   This runs:
+     - Express API server on http://localhost:3001
+     - Vite dev server on http://localhost:5173 (proxies /api to :3001)
+
+4. Open http://localhost:5173
+
+
+API ENDPOINT
+------------
+POST /api/generate-palette
+
+Request body (JSON):
+  { "vibe": "moody rainy afternoon" }
+
+Response (JSON):
+  {
+    "aesthetic_name": "Slate Reverie",
+    "descriptor": "One evocative sentence.",
+    "emojis": "🌧️",
+    "palette": [
+      { "name": "Ash Mist", "hex": "#B0B8C1", "role": "background" },
+      { "name": "Storm Blue", "hex": "#4A6275", "role": "primary" },
+      ...
+    ],
+    "fonts": {
+      "heading": "Playfair Display",
+      "body": "Lato"
+    }
+  }
+
+Palette roles: background, surface, primary, accent, text
+
+
+PRODUCTION DEPLOYMENT (VERCEL)
+-------------------------------
+1. Push to GitHub and import the repo in Vercel.
+2. Set ANTHROPIC_API_KEY in Vercel project environment variables.
+3. Vercel uses api/generate-palette.js as a serverless function automatically.
+4. Build command: npm run build  |  Output dir: dist
+
+Note: server.js is NOT used in production. It exists only for local dev.
+
+
+BUILD
+-----
+  npm run build     Outputs to dist/
+  npm run preview   Preview the production build locally
+
+
+LINTING
+-------
+  npm run lint
